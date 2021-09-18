@@ -33,7 +33,7 @@ class AwsCdkStaticWebsiteStack(cdk.Stack):
             "deploystaticwebpage",
             sources=[
                 _s3_deployment.Source.asset(
-                    "/Users/huiyeeleong/Desktop/hui-aws-cdk-static-website/hui-aws-cdk-static-web/aws_cdk_static_website/static_webpage"
+                    "/Users/huiyeeleong/Desktop/hui-static-webpage/aws_cdk_static_website/static_webpage"
                 )
             ],
             destination_bucket=hui_static_website
@@ -41,10 +41,48 @@ class AwsCdkStaticWebsiteStack(cdk.Stack):
 
         # create cloudfront for my webpage
         # Create Origin access identity for cloudfront
-        cloudfront_oai = _cloudfront.SourceConfiguration(
+        cloudfront_oai = _cloudfront.OriginAccessIdentity(
             self,
             "staticsiteOAI",
-            comment= f"OAI for static site from stack:{core.AWS.Stack_Name}"
+            comment= f"OAI for static site from stack:{core.Aws.STACK_NAME}"
         )
 
-        #Deploy cloudfront configuration
+        #Deploy cloudfront configuration 
+        #Use S3 bucket as origin
+        #policy for user only can access through cloudfront to access the bucket
+        cloudfront_config = _cloudfront.SourceConfiguration(
+            s3_origin_source = _cloudfront.S3OriginConfig(
+                s3_bucket_source=hui_static_website,
+                origin_access_identity=cloudfront_oai
+
+            ),
+            behaviors=[
+                _cloudfront.Behavior(
+                    is_default_behavior=True,
+                    compress=True,
+                    allowed_methods=_cloudfront.CloudFrontAllowedMethods.ALL,
+                    cached_methods=_cloudfront.CloudFrontAllowedCachedMethods.GET_HEAD
+                )
+            ]
+        )
+
+        #Create Cloudfront Distribution
+        static_distribution = _cloudfront.CloudFrontWebDistribution(
+            self,
+            "siteDistribution",
+            comment= "CDN for static website",
+            origin_configs = [cloudfront_config],
+            #price class to choose 
+            price_class = _cloudfront.PriceClass.PRICE_CLASS_100
+        )
+
+        #output cloudfront url on cloudformation
+        output_cf = core.CfnOutput(
+            self,
+            "Cloudfront_URL",
+            value=f"{static_distribution.domain_name}",
+            description = "The domain name of my static website"
+        )
+
+
+
