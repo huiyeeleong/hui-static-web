@@ -19,7 +19,7 @@ setuptools.setup(
     packages=setuptools.find_packages(where="aws_cdk_static_website"),
 
     install_requires=[
-        "aws-cdk.core==1.122.0",
+        "aws-cdk.core>=1.122.0",
     ],
 
     python_requires=">=3.6",
@@ -29,7 +29,6 @@ setuptools.setup(
 
         "Intended Audience :: Developers",
 
-        "Programming Language :: JavaScript",
         "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
